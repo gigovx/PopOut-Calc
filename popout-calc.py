@@ -338,7 +338,7 @@ class CalculatorApp:
         slides out when it leaves.
         """
         mouse_x, mouse_y = pyautogui.position()
-        threshold = 50
+        threshold = 25
 
         if self.side == "right":
             if mouse_x >= self.screen_width - threshold:
