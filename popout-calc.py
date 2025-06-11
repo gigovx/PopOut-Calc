@@ -334,46 +334,59 @@ class CalculatorApp:
     def check_hover(self):
         """
         Monitor the mouse position using PyAutoGUI.
-        Slides in when the pointer nears the chosen screen edge;
-        slides out when it leaves.
+        Instead of using a fixed distance from the screen edge, this function
+        checks if the mouse pointer is over the visible part of the calculator.
         """
         mouse_x, mouse_y = pyautogui.position()
-        threshold = 25
-
+        
+        # For each side, we determine the visible rectangle when hidden.
         if self.side == "right":
-            if mouse_x >= self.screen_width - threshold:
+            # When docked on the right, the hidden state window is at:
+            # x = self.screen_width - self.hidden_size (visible bar)
+            # and its y is self.y_pos with height self.full_height.
+            if (mouse_x >= self.screen_width - self.hidden_size and 
+                self.y_pos <= mouse_y <= self.y_pos + self.full_height):
                 if not self.is_expanded:
                     self.slide_in()
                     self.is_expanded = True
             else:
-                if self.is_expanded and mouse_x < self.current_offset:
+                if self.is_expanded:
                     self.slide_out()
                     self.is_expanded = False
+
         elif self.side == "left":
-            if mouse_x <= threshold:
+            # When docked on the left, the visible part covers x: 0 to self.hidden_size.
+            if (mouse_x <= self.hidden_size and 
+                self.y_pos <= mouse_y <= self.y_pos + self.full_height):
                 if not self.is_expanded:
                     self.slide_in()
                     self.is_expanded = True
             else:
-                if self.is_expanded and mouse_x > self.current_offset + self.full_width:
+                if self.is_expanded:
                     self.slide_out()
                     self.is_expanded = False
+
         elif self.side == "top":
-            if mouse_y <= threshold:
+            # When docked at the top, the visible part covers y: 0 to self.hidden_size.
+            if (mouse_y <= self.hidden_size and 
+                self.x_pos <= mouse_x <= self.x_pos + self.full_width):
                 if not self.is_expanded:
                     self.slide_in()
                     self.is_expanded = True
             else:
-                if self.is_expanded and mouse_y > self.current_offset + self.full_height:
+                if self.is_expanded:
                     self.slide_out()
                     self.is_expanded = False
+
         elif self.side == "bottom":
-            if mouse_y >= self.screen_height - threshold:
+            # When docked at the bottom, the visible part covers y: screen_height - self.hidden_size to screen_height.
+            if (mouse_y >= self.screen_height - self.hidden_size and 
+                self.x_pos <= mouse_x <= self.x_pos + self.full_width):
                 if not self.is_expanded:
                     self.slide_in()
                     self.is_expanded = True
             else:
-                if self.is_expanded and mouse_y < self.current_offset:
+                if self.is_expanded:
                     self.slide_out()
                     self.is_expanded = False
 
