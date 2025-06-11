@@ -334,61 +334,95 @@ class CalculatorApp:
     def check_hover(self):
         """
         Monitor the mouse position using PyAutoGUI.
-        Instead of using a fixed distance from the screen edge, this function
-        checks if the mouse pointer is over the visible part of the calculator.
+        
+        - When the calculator is expanded, keep it expanded as long as the mouse
+          is anywhere over the full expanded window.
+        - When it is hidden, only expand if the mouse is over the small visible bar.
         """
         mouse_x, mouse_y = pyautogui.position()
-        
-        # For each side, we determine the visible rectangle when hidden.
-        if self.side == "right":
-            # When docked on the right, the hidden state window is at:
-            # x = self.screen_width - self.hidden_size (visible bar)
-            # and its y is self.y_pos with height self.full_height.
-            if (mouse_x >= self.screen_width - self.hidden_size and 
-                self.y_pos <= mouse_y <= self.y_pos + self.full_height):
-                if not self.is_expanded:
-                    self.slide_in()
-                    self.is_expanded = True
-            else:
-                if self.is_expanded:
-                    self.slide_out()
-                    self.is_expanded = False
 
-        elif self.side == "left":
-            # When docked on the left, the visible part covers x: 0 to self.hidden_size.
-            if (mouse_x <= self.hidden_size and 
-                self.y_pos <= mouse_y <= self.y_pos + self.full_height):
-                if not self.is_expanded:
-                    self.slide_in()
-                    self.is_expanded = True
-            else:
-                if self.is_expanded:
+        if self.side == "right":
+            # The expanded window occupies from self.x_visible to screen_width.
+            if self.is_expanded:
+                # The full expanded window's horizontal coordinates:
+                full_left = self.x_visible  # defined during geometry calculation
+                full_right = self.screen_width  # because it's docked on the right
+                # Vertical coordinates:
+                full_top = self.y_pos
+                full_bottom = self.y_pos + self.full_height
+                # If the mouse is outside of the expanded window area, slide out.
+                if not (full_left <= mouse_x <= full_right and full_top <= mouse_y <= full_bottom):
                     self.slide_out()
                     self.is_expanded = False
+            else:
+                # Calculator is hidden. Its only visible part is the bar.
+                # That is, x from screen_width - self.hidden_size to screen_width.
+                bar_left = self.screen_width - self.hidden_size
+                bar_right = self.screen_width
+                bar_top = self.y_pos
+                bar_bottom = self.y_pos + self.full_height
+                if (mouse_x >= bar_left and mouse_x <= bar_right and
+                    mouse_y >= bar_top and mouse_y <= bar_bottom):
+                    self.slide_in()
+                    self.is_expanded = True
+
+        # Similar logic for left, top, and bottom sides.
+        elif self.side == "left":
+            if self.is_expanded:
+                full_left = 0
+                full_right = self.button_size * 4  # same as full_width
+                full_top = self.y_pos
+                full_bottom = self.y_pos + self.full_height
+                if not (full_left <= mouse_x <= full_right and full_top <= mouse_y <= full_bottom):
+                    self.slide_out()
+                    self.is_expanded = False
+            else:
+                bar_left = 0
+                bar_right = self.hidden_size
+                bar_top = self.y_pos
+                bar_bottom = self.y_pos + self.full_height
+                if (mouse_x >= bar_left and mouse_x <= bar_right and
+                    mouse_y >= bar_top and mouse_y <= bar_bottom):
+                    self.slide_in()
+                    self.is_expanded = True
 
         elif self.side == "top":
-            # When docked at the top, the visible part covers y: 0 to self.hidden_size.
-            if (mouse_y <= self.hidden_size and 
-                self.x_pos <= mouse_x <= self.x_pos + self.full_width):
-                if not self.is_expanded:
-                    self.slide_in()
-                    self.is_expanded = True
-            else:
-                if self.is_expanded:
+            if self.is_expanded:
+                full_top = 0
+                full_bottom = self.handle_height + self.copy_height + self.display_height + (self.buttons_rows * self.button_size)
+                full_left = self.x_pos
+                full_right = self.x_pos + self.full_width
+                if not (full_left <= mouse_x <= full_right and full_top <= mouse_y <= full_bottom):
                     self.slide_out()
                     self.is_expanded = False
+            else:
+                # When docked to the top, the visible bar is in y from 0 to self.hidden_size.
+                bar_top = 0
+                bar_bottom = self.hidden_size
+                bar_left = self.x_pos
+                bar_right = self.x_pos + self.full_width
+                if (mouse_y <= bar_bottom and mouse_x >= bar_left and mouse_x <= bar_right):
+                    self.slide_in()
+                    self.is_expanded = True
 
         elif self.side == "bottom":
-            # When docked at the bottom, the visible part covers y: screen_height - self.hidden_size to screen_height.
-            if (mouse_y >= self.screen_height - self.hidden_size and 
-                self.x_pos <= mouse_x <= self.x_pos + self.full_width):
-                if not self.is_expanded:
-                    self.slide_in()
-                    self.is_expanded = True
-            else:
-                if self.is_expanded:
+            if self.is_expanded:
+                full_bottom = self.screen_height
+                full_top = self.screen_height - self.full_height
+                full_left = self.x_pos
+                full_right = self.x_pos + self.full_width
+                if not (full_left <= mouse_x <= full_right and full_top <= mouse_y <= full_bottom):
                     self.slide_out()
                     self.is_expanded = False
+            else:
+                # For bottom, the visible bar is from screen_height - self.hidden_size to screen_height.
+                bar_bottom = self.screen_height
+                bar_top = self.screen_height - self.hidden_size
+                bar_left = self.x_pos
+                bar_right = self.x_pos + self.full_width
+                if (mouse_y >= bar_top and mouse_x >= bar_left and mouse_x <= bar_right):
+                    self.slide_in()
+                    self.is_expanded = True
 
         self.root.after(100, self.check_hover)
 
