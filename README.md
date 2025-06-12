@@ -1,4 +1,4 @@
-A very simple pop out claculator that clings to the side of the screen and pops up when yoo move your mouse to the side of the screen.
+A very simple pop out calculator that clings to the side of the screen and pops up when you move your mouse to the side of the screen.
 
 Built using Co-Pilot in 30 mins or so. I was looking for a nice simple way to have a calculator on screen but also hidden away and easy to access when I want, rather than having to search for Calculator everytime. Detects current Window theme when started and matches style, light or dark.
 
